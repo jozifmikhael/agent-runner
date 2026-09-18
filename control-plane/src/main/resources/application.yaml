@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: control-plane
+  datasource:
+    url: jdbc:postgresql://localhost:5432/agent_runner
+    username: postgres
+    password: admin
