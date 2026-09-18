@@ -1,4 +1,5 @@
 *.env
-target/
+build/
+.gradle/
 .venv/
 __pycache__/
