@@ -4,7 +4,7 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "dev.jozif"
+group = "dev.agentrunner"
 version = "0.0.1-SNAPSHOT"
 
 java {
