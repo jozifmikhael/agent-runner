@@ -1,3 +1,10 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic"
+    "[java]": {
+        "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+        }
+    },
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.format.settings.url": "control-plane/eclipse-formatter.xml"
 }
