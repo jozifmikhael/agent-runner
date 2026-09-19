@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 import dev.agentrunner.controlplane.run.entity.Run;
+import dev.agentrunner.controlplane.run.entity.RunStage;
 
 @Repository
 public class RunRepository {
@@ -69,5 +70,37 @@ public class RunRepository {
                 .param("workerId", workerId)
                 .query(Run.class)
                 .optional();
+    }
+
+    public boolean existsById(final UUID runId) {
+        var sql = """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM runs
+                    WHERE id = :id
+                )
+                """;
+
+        return client.sql(sql)
+                .param("id", runId)
+                .query(Boolean.class)
+                .single();
+    }
+
+    public int updateStage(final UUID runId, final String workerId, final RunStage stage) {
+        var sql = """
+                UPDATE runs
+                SET stage = :stage,
+                    updated_at = now()
+                WHERE id = :runId
+                    AND worker_id = :workerId
+                    AND status = 'RUNNING'
+                """;
+
+        return client.sql(sql)
+                .param("stage", stage.name())
+                .param("runId", runId)
+                .param("workerId", workerId)
+                .update();
     }
 }

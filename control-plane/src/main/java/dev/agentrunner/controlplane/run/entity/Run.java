@@ -6,7 +6,7 @@ import java.util.UUID;
 public record Run(UUID id,
     String task,
     RunStatus status,
-    String stage,
+    RunStage stage,
     int attempt,
     String workerId,
     Instant claimedAt,

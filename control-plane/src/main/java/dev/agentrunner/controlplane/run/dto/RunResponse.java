@@ -4,12 +4,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 import dev.agentrunner.controlplane.run.entity.Run;
+import dev.agentrunner.controlplane.run.entity.RunStage;
 import dev.agentrunner.controlplane.run.entity.RunStatus;
 
 public record RunResponse(UUID id,
         String task,
         RunStatus status,
-        String stage,
+        RunStage stage,
         int attempt,
         String workerId,
         Instant claimedAt,

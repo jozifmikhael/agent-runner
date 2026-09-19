@@ -15,6 +15,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import dev.agentrunner.controlplane.run.exception.RunNotFoundException;
+import dev.agentrunner.controlplane.run.exception.RunNotHeldException;
 import dev.agentrunner.controlplane.shared.web.model.FieldViolation;
 
 @RestControllerAdvice
@@ -23,8 +24,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(RunNotFoundException.class)
-    public ProblemDetail handleRunNotFound(final RunNotFoundException exception) {
+    public ProblemDetail handleRunNotFoundException(final RunNotFoundException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(RunNotHeldException.class)
+    public ProblemDetail handleRunNotHeldException(final RunNotHeldException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
     }
 
     @Override
