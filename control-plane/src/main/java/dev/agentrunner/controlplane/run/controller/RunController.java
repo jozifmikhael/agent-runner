@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import dev.agentrunner.controlplane.run.dto.RunDetailResponse;
 import dev.agentrunner.controlplane.run.dto.RunRequest;
 import dev.agentrunner.controlplane.run.dto.RunResponse;
 import dev.agentrunner.controlplane.run.service.RunService;
@@ -39,10 +40,10 @@ public class RunController {
     }
 
     @GetMapping("/{runUuid}")
-    public ResponseEntity<RunResponse> getRun(@PathVariable UUID runUuid) {
-        var run = runService.findById(runUuid);
+    public ResponseEntity<RunDetailResponse> getRun(@PathVariable UUID runUuid) {
+        var runWithEvents = runService.getRunWithEvents(runUuid);
 
-        return ResponseEntity.ok(RunResponse.from(run));
+        return ResponseEntity.ok(RunDetailResponse.from(runWithEvents));
     }
 
 }

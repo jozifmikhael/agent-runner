@@ -6,9 +6,11 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dev.agentrunner.controlplane.run.entity.CompletionStatus;
 import dev.agentrunner.controlplane.run.entity.Run;
 import dev.agentrunner.controlplane.run.entity.RunEvent;
 import dev.agentrunner.controlplane.run.entity.RunStage;
+import dev.agentrunner.controlplane.run.entity.RunWithEvents;
 import dev.agentrunner.controlplane.run.exception.RunNotFoundException;
 import dev.agentrunner.controlplane.run.exception.RunNotHeldException;
 import dev.agentrunner.controlplane.run.repository.RunEventRepository;
@@ -34,6 +36,13 @@ public class RunService {
         return runRepository.findById(runUuid).orElseThrow(() -> new RunNotFoundException(runUuid));
     }
 
+    public RunWithEvents getRunWithEvents(final UUID runUuid) {
+        var run = findById(runUuid);
+        var events = runEventRepository.findByRunId(runUuid);
+
+        return new RunWithEvents(run, events);
+    }
+
     public Optional<Run> claimNext(final String workerId) {
         return runRepository.claimNext(workerId);
     }
@@ -47,6 +56,12 @@ public class RunService {
         }
 
         return runEventRepository.createRunEvent(runId, stage, message);
+    }
+
+    // Single statement, so no @Transactional: the ownership check and the write are one UPDATE.
+    public Run complete(final UUID runId, final String workerId, final CompletionStatus status) {
+        return runRepository.complete(runId, workerId, status)
+                .orElseThrow(() -> notHeldOrNotFound(runId, workerId));
     }
 
     // Only called after a zero-row update, so this read never decides the write.

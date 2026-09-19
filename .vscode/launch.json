@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ControlplaneApplication<control-plane>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "dev.agentrunner.controlplane.ControlplaneApplication",
+            "projectName": "control-plane",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

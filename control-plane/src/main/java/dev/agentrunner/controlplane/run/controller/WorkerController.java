@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.agentrunner.controlplane.run.dto.RunCompletionRequest;
 import dev.agentrunner.controlplane.run.dto.RunEventRequest;
 import dev.agentrunner.controlplane.run.dto.RunEventResponse;
 import dev.agentrunner.controlplane.run.dto.RunResponse;
@@ -42,6 +43,16 @@ public class WorkerController {
         var event = runService.recordEvent(runId, workerId, request.stage(), request.message());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(RunEventResponse.from(event));
+    }
+
+    @PostMapping("/{workerId}/runs/{runId}/completion")
+    public ResponseEntity<RunResponse> completeRun(
+            @PathVariable @WorkerId String workerId,
+            @PathVariable UUID runId,
+            @RequestBody @Valid RunCompletionRequest request) {
+        var run = runService.complete(runId, workerId, request.status());
+
+        return ResponseEntity.ok(RunResponse.from(run));
     }
 
 }

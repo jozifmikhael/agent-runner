@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
+import dev.agentrunner.controlplane.run.entity.CompletionStatus;
 import dev.agentrunner.controlplane.run.entity.Run;
 import dev.agentrunner.controlplane.run.entity.RunStage;
 
@@ -102,5 +103,25 @@ public class RunRepository {
                 .param("runId", runId)
                 .param("workerId", workerId)
                 .update();
+    }
+
+    public Optional<Run> complete(final UUID runId, final String workerId,
+            final CompletionStatus status) {
+        var sql = """
+                UPDATE runs
+                SET status = :status::run_status,
+                    updated_at = now()
+                WHERE id = :runId
+                    AND worker_id = :workerId
+                    AND status = 'RUNNING'
+                RETURNING %s
+                """.formatted(RUN_COLUMNS);
+
+        return client.sql(sql)
+                .param("status", status.name())
+                .param("runId", runId)
+                .param("workerId", workerId)
+                .query(Run.class)
+                .optional();
     }
 }
