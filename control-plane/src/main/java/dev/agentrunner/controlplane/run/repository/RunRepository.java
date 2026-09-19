@@ -1,5 +1,8 @@
 package dev.agentrunner.controlplane.run.repository;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -21,5 +24,13 @@ public class RunRepository {
                 .param("task", task)
                 .query(Run.class)
                 .single();
+    }
+
+    public Optional<Run> findById(final UUID runUuid) {
+        var sql = "SELECT id, task, status, stage, attempt, worker_id, claimed_at, created_at, updated_at FROM runs WHERE id = :id";
+        return client.sql(sql)
+                .param("id", runUuid)
+                .query(Run.class)
+                .optional();
     }
 }
