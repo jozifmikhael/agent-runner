@@ -1,5 +1,6 @@
 package dev.agentrunner.controlplane.run.service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -22,7 +23,10 @@ public class RunService {
     }
 
     public Run findById(final UUID runUuid) {
-        return runRepository.findById(runUuid)
-                .orElseThrow(() -> new RunNotFoundException(runUuid));
+        return runRepository.findById(runUuid).orElseThrow(() -> new RunNotFoundException(runUuid));
+    }
+
+    public Optional<Run> claimNext(final String workerId) {
+        return runRepository.claimNext(workerId);
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import dev.agentrunner.controlplane.run.exception.RunNotFoundException;
@@ -33,9 +34,31 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatusCode status,
             WebRequest request) {
         var problemDetail = exception.getBody();
-        var fieldErrors = exception.getBindingResult().getFieldErrors()
-                .stream().map((fieldError) -> new FieldViolation(fieldError.getField(),
+        var fieldErrors = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map((fieldError) -> new FieldViolation(fieldError.getField(),
                         fieldError.getDefaultMessage()))
+                .toList();
+        problemDetail.setProperty("errors", fieldErrors);
+
+        return ResponseEntity.status(status).body(problemDetail);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException exception,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+        var problemDetail = exception.getBody();
+        var fieldErrors = exception.getParameterValidationResults()
+                .stream()
+                .flatMap((result) -> result.getResolvableErrors()
+                        .stream()
+                        .map((error) -> new FieldViolation(
+                                result.getMethodParameter().getParameterName(),
+                                error.getDefaultMessage())))
                 .toList();
         problemDetail.setProperty("errors", fieldErrors);
 
