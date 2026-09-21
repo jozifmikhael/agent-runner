@@ -5,7 +5,9 @@ server:
 spring:
   application:
     name: control-plane
+  config:
+    import: "optional:file:./.env[.properties],optional:file:../.env[.properties]"
   datasource:
-    url: jdbc:postgresql://localhost:5432/agent_runner
-    username: postgres
-    password: admin
+    url: jdbc:postgresql://localhost:5432/${DATABASE}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
