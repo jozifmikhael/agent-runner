@@ -3,4 +3,4 @@ build/
 .gradle/
 .venv/
 __pycache__/
-CLAUDE.md
+CLAUDE.local.md
