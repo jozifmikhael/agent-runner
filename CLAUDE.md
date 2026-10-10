@@ -1,38 +1,60 @@
 # agent-runner
 
-A distributed agent execution platform. A control plane owns run state and hands tasks to a fleet of
-workers; workers execute an agent loop and report progress; a dashboard (later) shows runs in flight
-and the points where a human has to approve.
+A distributed agent execution platform: a Java control plane owns all run state and hands runs to a
+fleet of Python workers over HTTP. `README.md` has setup and the API.
 
-Component-specific rules load from `.claude/rules/` when working in that component.
+## Layout
+
+- `control-plane/` — Spring Boot API, claim logic; migrations in `src/main/resources/db/migration`
+- `worker/` — the Python worker, `worker.py`
+- `docker-compose.yml` — Postgres
+
+Workers never talk to each other or to the database — only to the control plane over HTTP.
+Language-specific conventions load from `.claude/rules/` when working in each directory.
 
 ## Commands
 
-From the repo root:
+Repo root:
 
 - Postgres: `docker compose up -d` (reads `.env`; see README)
 - psql: `docker compose exec postgres psql -U postgres -d agent_runner`
 
-From `control-plane/` (use `gradlew.bat` on Windows):
+`control-plane/` (`./gradlew` in Git Bash, `gradlew.bat` in cmd or PowerShell):
 
 - Run: `./gradlew bootRun` — binds `127.0.0.1:8080`, applies Flyway migrations on startup
 - Compile check: `./gradlew compileJava -q`
-- Test: `./gradlew test`
+- Tests: `./gradlew test`; one class: `./gradlew test --tests '<ClassName>'`
 
-From `worker/`, inside its virtual environment (`.venv`):
+`worker/` (paths are Windows; on macOS/Linux use `.venv/bin/python`):
 
-- Install: `pip install -r requirements.txt`
-- Run: `python worker.py <worker-id>` — each worker gets a distinct id
+- Setup: `python -m venv .venv`, then `.venv/Scripts/python.exe -m pip install -r requirements.txt`
+- Run: `.venv/Scripts/python.exe worker.py <worker-id>`, or `python worker.py <worker-id>` with
+  `.venv` activated. Each worker needs a distinct id.
+- Control plane URL: `CONTROL_PLANE_URL`, default `http://127.0.0.1:8080`
+- Lint and format: Ruff, through the VS Code extension. There is no command-line Ruff until CI.
 
-## Architecture
+## Code (both languages)
 
-- **Control plane** (`control-plane/`) — Java 21, Spring Boot 4.1.x, Gradle (Kotlin DSL). Owns all
-  run state.
-- **Worker** (`worker/`) — Python. Claims a run, executes stages, reports back over HTTP.
-- **Postgres** — Docker Compose; schema owned by Flyway.
-- **Dashboard** — not built yet (milestone 4).
+What clean, DRY, and SOLID mean in this repo, concretely:
 
-Workers never talk to each other or to the database directly — only to the control plane over HTTP.
+- **Names and structure carry the meaning.** Comments and docstrings explain only *why* — never
+  restate the code. Per-language format is in `.claude/rules/`.
+- **One job per function and class.** HTTP, state rules, and SQL live in separate layers (control
+  plane) or separate small helpers (worker), so the top-level flow reads as a list of steps.
+- **Pass dependencies in:** constructor injection in Java, parameters in Python. No mutable
+  globals or static state.
+- **Each rule, constant, or query lives in one place.** Similar-looking code may appear twice;
+  extract it on the third copy, or sooner if the copies must always change together.
+- **No speculative abstraction:** no interface with a single implementation, no option for a value
+  that never varies, nothing built for a later milestone.
+- **Name tunable values** as `UPPER_CASE` constants (timeouts, intervals, limits). No magic numbers
+  or strings in logic.
+- **Prefer immutable data:** Java records and `final`; Python tuples for fixed sequences.
+- **Handle expected errors by name; let everything else fail loudly.** Never catch and ignore.
+- **Validate at the boundary**, then trust the value inside.
+- **Type every signature.**
+- **Log ids, not payloads.**
+- **Keep a change to its purpose.** No drive-by refactors or reformatting of unrelated code.
 
 ## Settled decisions
 
@@ -47,13 +69,26 @@ Do not re-litigate these without a reason that did not exist when they were made
 - **Bind to localhost** until authentication exists (milestone 7). The worker id in the path is an
   *assertion*, not an authenticated identity, until then. Describe it accurately.
 
+## Before opening a PR
+
+- Control plane: `./gradlew compileJava -q` and `./gradlew test` pass.
+- Worker: Ruff reports nothing for the changed file, and the change was run against a live
+  control plane.
+- The PR title is `M<n>: <what changed>`. The body says what changed, why, and how it was tested,
+  and links issues with `Closes #n`.
+
 ## Git workflow
 
-- `main` holds finished milestones. `develop` is the integration branch and the GitHub default.
-- Branch from `develop` as `feature/…`, `fix/…`, or `chore/…`; open a PR into `develop`.
-- `develop` merges into `main` when a milestone is complete.
-- Prefix commit messages and PR titles with the milestone: `M1: …`.
-- Work items are GitHub issues. Reference them in PRs (`Closes #n`).
+- `main` holds finished milestones; `develop` is the integration branch and the GitHub default.
+  Both are protected by rulesets: changes arrive only through PRs.
+- Branch from `develop` as `feature/…`, `fix/…`, or `chore/…`, and open a PR into `develop`.
+- PRs into `develop` are **squash-merged**: the PR title becomes the commit and the PR body its
+  message. Branch commit messages are not kept, so the title is what matters.
+- After a squash merge, delete the local branch with `git branch -D`. `-d` refuses, because the
+  squash commit is not the branch's commit.
+- `develop` merges into `main` when a milestone is complete, through a PR merged with a **merge
+  commit**. Squashing there would split the two branches' histories.
+- Work items are GitHub issues.
 - Never commit `.env` or `CLAUDE.local.md`.
 
 ## Milestones
