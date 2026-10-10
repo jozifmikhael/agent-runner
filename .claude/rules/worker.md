@@ -33,12 +33,11 @@ Examples below are excerpts from `worker/worker.py`.
   ) -> dict[str, Any] | None:
   ```
 
-- Code should be self-documenting through names and structure. Docstrings (the Python equivalent
-  of Javadoc) go only on complex functions, and explain *why*: the constraint, race, or decision
-  behind the code. Never restate what the code already says; never add one to a simple function
-  whose name and signature say it all. Format per PEP 257: triple double quotes, a one-line
-  summary ending in a period, and a blank line before any detail. Inline `#` comments follow the
-  same rule: only for a non-obvious *why*.
+- Docstrings (the Python equivalent of Javadoc) follow the comment rule in `CLAUDE.md`: only on
+  complex functions, explaining *why* — the constraint, race, or decision behind the code. Never
+  add one to a simple function whose name and signature say it all. Format per PEP 257: triple
+  double quotes, a one-line summary ending in a period, and a blank line before any detail.
+  Inline `#` comments follow the same rule: only for a non-obvious *why*.
 
   Redundant — restates the name and signature, so leave it out:
 
@@ -47,20 +46,23 @@ Examples below are excerpts from `worker/worker.py`.
       """Update run status to succeeded/failed."""
   ```
 
-  The tone to match — says what the code cannot (illustrative):
+  The tone to match — says what the code cannot:
 
   ```python
   class RunLostError(Exception):
-      """Raised on 409: the control plane no longer counts this worker as the run's holder.
+      """Raised on 409: the control plane no longer counts this worker as the holder.
 
       Not retried, because the run is already finished or held by another worker; retrying
       cannot win it back.
       """
   ```
 
+  An inline comment in the same tone (illustrative):
+
   ```python
   # 204 is the normal idle case, not an error, so check it before raise_for_status().
   if response.status_code == 204:
       return None
   ```
+
 - Dependencies are pinned in `requirements.txt`; install inside `worker/.venv`.

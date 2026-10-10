@@ -105,10 +105,10 @@ excerpts from the codebase; the named file is the reference to copy from.
 - Formatter: `control-plane/eclipse-formatter.xml` — 100 columns, long method chains one call per
   line. It never joins lines and never touches SQL inside text blocks, so format those by hand.
 - Constructor injection with `final` fields and `final` parameters; `var` for locals.
-- Code should be self-documenting through names and structure. Javadoc goes only on complex
-  methods, and explains *why*: the constraint, race, or decision behind the code. Never restate
-  what the code already says, never add Javadoc to getters, simple delegations, or obvious
-  methods. If a comment would be redundant, leave it out. The tone to match (`RunService`):
+- Javadoc follows the comment rule in `CLAUDE.md`: only on complex methods, explaining *why* —
+  the constraint, race, or decision behind the code. Never on getters, simple delegations, or
+  obvious methods. A short `//` line above the method is enough when one sentence says it. The
+  tone to match (`RunService`):
 
   ```java
   // Single statement, so no @Transactional: the ownership check and the write are one UPDATE.
